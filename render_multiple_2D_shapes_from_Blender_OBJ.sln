@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "render_multiple_shapes", "render_multiple_shapes.vcxproj", "{612CB533-6A7D-4936-B6E9-9646D44C868D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "render_multiple_2D_shapes_from_Blender_OBJ", "render_multiple_2D_shapes_from_Blender_OBJ.vcxproj", "{612CB533-6A7D-4936-B6E9-9646D44C868D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

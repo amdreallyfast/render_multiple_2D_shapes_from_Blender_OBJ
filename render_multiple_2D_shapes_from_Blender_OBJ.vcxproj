@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{612CB533-6A7D-4936-B6E9-9646D44C868D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>render_multiple_shapes</RootNamespace>
+    <RootNamespace>render_multiple_2D_shapes_from_Blender_OBJ</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
