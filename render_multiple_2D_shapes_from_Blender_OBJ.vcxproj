@@ -145,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GenerateShader.cpp" />
+    <ClCompile Include="BlenderLoad.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="OpenGlErrorHandling.cpp" />
     <ClCompile Include="PrimitiveGeneration.cpp" />
@@ -156,6 +157,8 @@
   <ItemGroup>
     <ClInclude Include="GenerateShader.h" />
     <ClInclude Include="GeometryData.h" />
+    <ClInclude Include="BlenderLoad.h" />
+    <ClInclude Include="MyVertex.h" />
     <ClInclude Include="OpenGlErrorHandling.h" />
     <ClInclude Include="PrimitiveGeneration.h" />
   </ItemGroup>
