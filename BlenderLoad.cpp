@@ -48,7 +48,15 @@ bool BlenderLoad::LoadObj(const std::string &filePath, GEOMETRY_DATA_BY_NAME *pu
     if (posOfSubstring == -1)
     {
         cout << "File '" << filePath << "' is not an OBJ file" << endl;
+        return false;
     }
+
+    // "www.blender.org"
+    std::getline(fileStream, line);
+
+    // material file (don't care in this demo)
+    std::getline(fileStream, line);
+
 
     std::vector<glm::vec3> vertPositions;
     //std::vector<glm::vec3> vertTextureCoord;    // not supported (yet)
@@ -62,14 +70,15 @@ bool BlenderLoad::LoadObj(const std::string &filePath, GEOMETRY_DATA_BY_NAME *pu
     // the object specifies "f" then it has faces and if it specifies "l" then it has lines.
     std::string lineHeaderObjectName("o ");
     std::string lineHeaderVertexPosition("v ");
-    std::string lineHeaderVertexNormal("n ");
+    std::string lineHeaderVertexNormal("vn ");
     std::string lineHeaderFace("f ");
     std::string lineHeaderLine("l ");
+    std::string lineHeaderUseMaterial("usemtl ");
+    std::string lineHeaderSmoothShading("s ");
 
+    GeometryData *geometryData = 0;
     while (std::getline(fileStream, line))
     {
-        GeometryData *geometryData = 0;
-
         if (line.substr(0, lineHeaderObjectName.length()) == lineHeaderObjectName)
         {
             // new object
@@ -77,14 +86,16 @@ bool BlenderLoad::LoadObj(const std::string &filePath, GEOMETRY_DATA_BY_NAME *pu
             // extract from the end of the head until the end of the line
             std::string objectName = line.substr(lineHeaderObjectName.length());
             
-            // save this empty data
+            // make a new GeometryData object and stuff any face/line data into there
             putDataHere->insert(GEOMETRY_NAME_PAIR(objectName, GeometryData()));
-
-            // now get a pointer to the GeometryData structure and work on that
             geometryData = &(putDataHere->find(objectName)->second);
-            vertPositions.clear();
-            //vertTextureCoord.clear();   // not supported (yet)
-            vertNormals.clear();
+
+            // do NOT clear out the vertex position and normal collections because Blender OBJ 
+            // files treat vertex values as being in a single, large collection 
+            // Ex: Obj 1 is a flat plane and has a single vertex normal value.  The face 
+            // description will use normal index 1.
+            // Ex: Obj 2 is a bent plane with 2 vertex normals.  The face descriptions will use 
+            // normal indices 2 and 3.  They don't reset at 1.
         }
         else if (line.substr(0, lineHeaderVertexPosition.length()) == lineHeaderVertexPosition)
         {
@@ -92,7 +103,8 @@ bool BlenderLoad::LoadObj(const std::string &filePath, GEOMETRY_DATA_BY_NAME *pu
             float x;
             float y;
             float z;
-            const char *readBuffer = line.substr(lineHeaderVertexPosition.length()).c_str();
+            std::string subStr = line.substr(lineHeaderVertexPosition.length());
+            const char *readBuffer = subStr.c_str();
             sscanf(readBuffer, "%f %f %f", &x, &y, &z);
             vertPositions.push_back(glm::vec3(x, y, z));
         }
@@ -101,24 +113,30 @@ bool BlenderLoad::LoadObj(const std::string &filePath, GEOMETRY_DATA_BY_NAME *pu
             float x;
             float y;
             float z;
-            const char *readBuffer = line.substr(lineHeaderVertexPosition.length()).c_str();
+            std::string subStr = line.substr(lineHeaderVertexPosition.length());
+            const char *readBuffer = subStr.c_str();
             sscanf(readBuffer, "%f %f %f", &x, &y, &z);
             vertNormals.push_back(glm::vec3(x, y, z));
         }
         else if (line.substr(0, lineHeaderLine.length()) == lineHeaderLine)
         {
             // data comes in lines
-            // Note: I am assuming (for demo) that it only has lines.
+            // Note: I am assuming (for demo) that it only has lines.  It is possible for a 
+            // shape to have both lines and faces, but that is when someone adds an edge between 
+            // two vertices without merging the vertices.  For the sake of this demo, just 
+            // assume that, if there is line in the shape's data, then the shape should be drawn 
+            // with lines only.
             geometryData->_drawStyle = GL_LINES;
 
-            // 2D lines in Blender do not have normals, but only positions
+            // 2D lines in Blender only have positions, not normals nor texture coordinates
             unsigned short p1Index = 0;
             unsigned short p2Index = 0;
 
             // the 'h' indicates the reading of a short integer
             // Note: http://www.cprogramming.com/tutorial/printf-format-strings.html
-            const char *readbuffer = line.substr(lineHeaderLine.length()).c_str();
-            sscanf(readbuffer, "%hd %hd", &p1Index, &p2Index);
+            std::string subStr = line.substr(lineHeaderLine.length());
+            const char *readBuffer = subStr.c_str();
+            sscanf(readBuffer, "%hd %hd", &p1Index, &p2Index);
 
             // create the vertex objects and put them into the geometry data
             // Note: Indices for lines begin at 1 (not 0).
@@ -151,8 +169,9 @@ bool BlenderLoad::LoadObj(const std::string &filePath, GEOMETRY_DATA_BY_NAME *pu
 
             // the 'h' indicates the reading of a short integer
             // Note: http://www.cprogramming.com/tutorial/printf-format-strings.html
-            const char *readbuffer = line.substr(lineHeaderFace.length()).c_str();
-            sscanf(readbuffer, "%hd/%hd/%hd %hd/%hd/%hd %hd/%hd/%hd %hd/%hd/%hd",
+            std::string subStr = line.substr(lineHeaderFace.length());
+            const char *readBuffer = subStr.c_str();
+            sscanf_s(readBuffer, "%hd/%hd/%hd %hd/%hd/%hd %hd/%hd/%hd %hd/%hd/%hd",
                 &p1Index, &t1Index, &n1Index,
                 &p2Index, &t2Index, &n2Index,
                 &p3Index, &t3Index, &n3Index,
@@ -164,7 +183,7 @@ bool BlenderLoad::LoadObj(const std::string &filePath, GEOMETRY_DATA_BY_NAME *pu
             if (t1Index == 0 || t2Index == 0 || t3Index == 0 || t4Index == 0)
             {
                 // no texture coordinates, so run the parse again
-                sscanf(readbuffer, "%hd//%hd %hd//%hd %hd//%hd %hd//%hd",
+                sscanf(readBuffer, "%hd//%hd %hd//%hd %hd//%hd %hd//%hd",
                     &p1Index, &n1Index,
                     &p2Index, &n2Index,
                     &p3Index, &n3Index,
@@ -201,9 +220,22 @@ bool BlenderLoad::LoadObj(const std::string &filePath, GEOMETRY_DATA_BY_NAME *pu
 
             // doing a triangle, so 
         }
+        else if (line.substr(0, lineHeaderUseMaterial.length()) == lineHeaderUseMaterial)
+        {
+            // materials ignored in this demo
+        }
+        else if (line.substr(0, lineHeaderSmoothShading.length()) == lineHeaderSmoothShading)
+        {
+            // smooth shading ignored in this demo
+        }
         else
         {
             // ??unknown header??
+            cout << "unknown line header for line '" << line << "'" << endl;
+            // ??return false??
         }
     }
+
+    // all went well
+    return true;
 }

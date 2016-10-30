@@ -1,7 +1,6 @@
 #version 440
 
-layout (location = 0) in vec2 pos;
-layout (location = 1) in vec3 color;    
+layout (location = 0) in vec4 pos;
 
 uniform mat4 translateMatrixWindowSpace;
 
@@ -10,8 +9,9 @@ smooth out vec3 vertOutColor;
 
 void main()
 {
-    vertOutColor = color;
-    //gl_Position = vec4(pos, -1.0f, 1.0f);
-	gl_Position = translateMatrixWindowSpace * vec4(pos, -1.0f, 1.0f);
+    // no colors from the Blender OBJ files; just hard-code white
+    vertOutColor = vec3(1.0f, 1.0f, 1.0f);
+
+	gl_Position = translateMatrixWindowSpace * pos;
 }
 

@@ -37,6 +37,7 @@
 #include "GenerateShader.h"
 #include "GeometryData.h"
 #include "PrimitiveGeneration.h"
+#include "BlenderLoad.h"
 
 // for moving the shapes around in window space
 #include "glm/gtc/matrix_transform.hpp"
@@ -55,6 +56,8 @@ GeometryData gCircle;
 // shader programs
 GLint gUniformLocation;
 
+
+BlenderLoad::GEOMETRY_DATA_BY_NAME gGeometryStorage;
 
 /*-----------------------------------------------------------------------------------------------
 Description:
@@ -83,13 +86,25 @@ void Init()
     gProgramId = GenerateShaderProgram();
     gUniformLocation = glGetUniformLocation(gProgramId, "translateMatrixWindowSpace");
 
-    GenerateTriangle(&gTriangle);
+    if (!BlenderLoad::LoadObj("BlenderStuff/circle_square_grid.obj", &gGeometryStorage))
+    {
+        printf("Geometry loading failed\n");
+        //??return??
+    }
 
-    GenerateBox(&gBox);
-    GenerateCircle(&gCircle);
-    InitializeGeometry(gProgramId, &gTriangle);
-    InitializeGeometry(gProgramId, &gBox);
-    InitializeGeometry(gProgramId, &gCircle);
+    for (auto itr = gGeometryStorage.begin(); itr != gGeometryStorage.end(); itr++)
+    {
+        InitializeGeometry(gProgramId, &(itr->second));
+    }
+    printf("");
+
+    //GenerateTriangle(&gTriangle);
+
+    //GenerateBox(&gBox);
+    //GenerateCircle(&gCircle);
+    //InitializeGeometry(gProgramId, &gTriangle);
+    //InitializeGeometry(gProgramId, &gBox);
+    //InitializeGeometry(gProgramId, &gCircle);
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -114,27 +129,37 @@ void Display()
 
     glUseProgram(gProgramId);
 
-    // put the triangle up and to the right
-    // Note: Remember that this program is "barebones", so translation must be in window space 
-    // ([-1,+1] on X and Y).
-    translateMatrix = glm::translate(glm::mat4(), glm::vec3(+0.3f, +0.3f, 0.0f));
+    translateMatrix = glm::translate(glm::mat4(), glm::vec3(+0.0f, +0.0f, 0.0f));
     glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
-    glBindVertexArray(gTriangle._vaoId);
-    glDrawElements(gTriangle._drawStyle, gTriangle._indices.size(), GL_UNSIGNED_SHORT, 0);
+    for (auto itr = gGeometryStorage.begin(); itr != gGeometryStorage.end(); itr++)
+    {
+        const GeometryData &geoRef = itr->second;
+        glBindVertexArray(geoRef._vaoId);
+        glDrawArrays(geoRef._drawStyle, 0, geoRef._verts.size());
+    }
+    //// put the triangle up and to the right
+    //// Note: Remember that this program is "barebones", so translation must be in window space 
+    //// ([-1,+1] on X and Y).
+    //translateMatrix = glm::translate(glm::mat4(), glm::vec3(+0.3f, +0.3f, 0.0f));
+    //glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
+    //glBindVertexArray(gTriangle._vaoId);
+    //glDrawElements(gTriangle._drawStyle, gTriangle._indices.size(), GL_UNSIGNED_SHORT, 0);
 
-    // put the box up and to the left
-    translateMatrix = glm::translate(glm::mat4(), glm::vec3(-0.3f, +0.3f, 0.0f));
-    glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
-    glBindVertexArray(gBox._vaoId);
-    glDrawElements(gBox._drawStyle, gBox._indices.size(), GL_UNSIGNED_SHORT, 0);
+    //// put the box up and to the left
+    //translateMatrix = glm::translate(glm::mat4(), glm::vec3(-0.3f, +0.3f, 0.0f));
+    //glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
+    //glBindVertexArray(gBox._vaoId);
+    //glDrawElements(gBox._drawStyle, gBox._indices.size(), GL_UNSIGNED_SHORT, 0);
 
-    // put the circle down and center
-    translateMatrix = glm::translate(glm::mat4(), glm::vec3(0.0f, -0.3f, 0.0f));
-    glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
-    glBindVertexArray(gCircle._vaoId);
-    glDrawElements(gCircle._drawStyle, gCircle._indices.size(), GL_UNSIGNED_SHORT, 0);
+    //// put the circle down and center
+    //translateMatrix = glm::translate(glm::mat4(), glm::vec3(0.0f, -0.3f, 0.0f));
+    //glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
+    //glBindVertexArray(gCircle._vaoId);
+    //glDrawElements(gCircle._drawStyle, gCircle._indices.size(), GL_UNSIGNED_SHORT, 0);
 
+    // cleanup
     glUseProgram(0);
+    glBindVertexArray(0);
 
     // tell the GPU to swap out the displayed buffer with the one that was just rendered
     glutSwapBuffers();
@@ -254,7 +279,7 @@ int main(int argc, char *argv[])
     glutInitContextProfile(GLUT_CORE_PROFILE);
 
     // enable this for automatic message reporting (see OpenGlErrorHandling.cpp)
-//#define DEBUG
+#define DEBUG
 #ifdef DEBUG
     glutInitContextFlags(GLUT_DEBUG);
 #endif
