@@ -150,7 +150,6 @@
     <ClCompile Include="GeometryData.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="OpenGlErrorHandling.cpp" />
-    <ClCompile Include="PrimitiveGeneration.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.frag" />
@@ -158,11 +157,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GenerateShader.h" />
-    <ClInclude Include="GeometryData.h" />
     <ClInclude Include="BlenderLoad.h" />
+    <ClInclude Include="GeometryData.h" />
     <ClInclude Include="MyVertex.h" />
     <ClInclude Include="OpenGlErrorHandling.h" />
-    <ClInclude Include="PrimitiveGeneration.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

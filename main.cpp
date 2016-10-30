@@ -36,7 +36,6 @@
 #include "OpenGlErrorHandling.h"
 #include "GenerateShader.h"
 #include "GeometryData.h"
-#include "PrimitiveGeneration.h"
 #include "BlenderLoad.h"
 
 // for moving the shapes around in window space
@@ -48,16 +47,13 @@ GLuint gProgramId;
 
 // in a bigger program, geometry data would be stored in some kind of "scene" or in a renderer
 // or behind door number 3 so that collision boxes could get at the vertex data
-GeometryData gTriangle;
-GeometryData gBox;
-GeometryData gCircle;
+BlenderLoad::GEOMETRY_DATA_BY_NAME gGeometryStorage;
 
 // in a bigger program, uniform locations would probably be stored in the same place as the 
 // shader programs
 GLint gUniformLocation;
 
 
-BlenderLoad::GEOMETRY_DATA_BY_NAME gGeometryStorage;
 
 /*-----------------------------------------------------------------------------------------------
 Description:
@@ -95,17 +91,9 @@ void Init()
     for (auto itr = gGeometryStorage.begin(); itr != gGeometryStorage.end(); itr++)
     {
         itr->second.Init(gProgramId);
-        //InitializeGeometry(gProgramId, &(itr->second));
     }
+
     printf("");
-
-    //GenerateTriangle(&gTriangle);
-
-    //GenerateBox(&gBox);
-    //GenerateCircle(&gCircle);
-    //InitializeGeometry(gProgramId, &gTriangle);
-    //InitializeGeometry(gProgramId, &gBox);
-    //InitializeGeometry(gProgramId, &gCircle);
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -128,7 +116,9 @@ void Display()
 
     glUseProgram(gProgramId);
 
-    // vertices from the Blender OBJ file are already in world space, so don't touch them with a transformation, but the vertex shader still needs a transform, so give it the identity matrix.
+    // vertices from the Blender OBJ file are already in world space, so don't touch them with a 
+    // transformation, but the vertex shader still needs a transform, so give it the identity 
+    // matrix
     glm::mat4 translateMatrix;
     glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
     for (auto itr = gGeometryStorage.begin(); itr != gGeometryStorage.end(); itr++)
@@ -137,25 +127,6 @@ void Display()
         glBindVertexArray(geoRef._vaoId);
         glDrawArrays(geoRef._drawStyle, 0, geoRef._verts.size());
     }
-    //// put the triangle up and to the right
-    //// Note: Remember that this program is "barebones", so translation must be in window space 
-    //// ([-1,+1] on X and Y).
-    //translateMatrix = glm::translate(glm::mat4(), glm::vec3(+0.3f, +0.3f, 0.0f));
-    //glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
-    //glBindVertexArray(gTriangle._vaoId);
-    //glDrawElements(gTriangle._drawStyle, gTriangle._indices.size(), GL_UNSIGNED_SHORT, 0);
-
-    //// put the box up and to the left
-    //translateMatrix = glm::translate(glm::mat4(), glm::vec3(-0.3f, +0.3f, 0.0f));
-    //glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
-    //glBindVertexArray(gBox._vaoId);
-    //glDrawElements(gBox._drawStyle, gBox._indices.size(), GL_UNSIGNED_SHORT, 0);
-
-    //// put the circle down and center
-    //translateMatrix = glm::translate(glm::mat4(), glm::vec3(0.0f, -0.3f, 0.0f));
-    //glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
-    //glBindVertexArray(gCircle._vaoId);
-    //glDrawElements(gCircle._drawStyle, gCircle._indices.size(), GL_UNSIGNED_SHORT, 0);
 
     // cleanup
     glUseProgram(0);
