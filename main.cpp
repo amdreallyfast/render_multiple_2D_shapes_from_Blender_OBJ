@@ -94,7 +94,8 @@ void Init()
 
     for (auto itr = gGeometryStorage.begin(); itr != gGeometryStorage.end(); itr++)
     {
-        InitializeGeometry(gProgramId, &(itr->second));
+        itr->second.Init(gProgramId);
+        //InitializeGeometry(gProgramId, &(itr->second));
     }
     printf("");
 
@@ -125,11 +126,10 @@ void Display()
     glClearDepth(1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 translateMatrix;
-
     glUseProgram(gProgramId);
 
-    translateMatrix = glm::translate(glm::mat4(), glm::vec3(+0.0f, +0.0f, 0.0f));
+    // vertices from the Blender OBJ file are already in world space, so don't touch them with a transformation, but the vertex shader still needs a transform, so give it the identity matrix.
+    glm::mat4 translateMatrix;
     glUniformMatrix4fv(gUniformLocation, 1, GL_FALSE, glm::value_ptr(translateMatrix));
     for (auto itr = gGeometryStorage.begin(); itr != gGeometryStorage.end(); itr++)
     {

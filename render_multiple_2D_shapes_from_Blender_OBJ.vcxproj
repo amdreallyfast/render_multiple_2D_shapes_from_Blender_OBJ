@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClCompile Include="GenerateShader.cpp" />
     <ClCompile Include="BlenderLoad.cpp" />
+    <ClCompile Include="GeometryData.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="OpenGlErrorHandling.cpp" />
     <ClCompile Include="PrimitiveGeneration.cpp" />
